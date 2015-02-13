@@ -1,0 +1,40 @@
+{% load staticfiles %}
+<link rel="stylesheet" href="{% static 'assets/libs/bootstrap/css/bootstrap.css' %}">
+<script src="{% static 'assets/libs/paperjs/paper-full.js' %}" ></script>
+<script src="{% static 'assets/libs/jquery/jquery-1.11.2.js' %}" ></script>
+<script src="{% static 'assets/libs/bootstrap/js/bootstrap.js' %}" ></script>
+<style>
+    .field-buttons label {
+        width: 100%;
+    }
+    #draw_area{
+        border: solid 2px #000;
+    }
+</style>
+<script>
+    $.ajaxSetup({
+        data: {csrfmiddlewaretoken: '{{ csrf_token }}' }
+    });
+</script>
+<div class="row-fluid clearfix">
+    <div class="col-xs-3">
+        <h2>Fields List</h2>
+        <div class="field-buttons" data-toggle="buttons">
+        {% for field in object_list %}
+            {% if forloop.counter0 != 0 %}
+            <label class="btn btn-primary">
+                <input type="radio" name="options" id="field_{{ field.pk }}" data-field-id="{{ field.pk }}" data-field-value="{{ field.field_value }}" autocomplete="off"> {{ field.field_value }}
+            </label><br/><br/>
+            {% else %}
+            <label class="btn btn-primary active">
+                <input type="radio" name="options" id="field_{{ field.pk }}" data-field-id="{{ field.pk }}" data-field-value="{{ field.field_value }}" autocomplete="off" checked> {{ field.field_value }}
+            </label><br/><br/>
+            {% endif %}
+        {% endfor %}
+        </div>
+    </div>
+    <div class="col-xs-9">
+        <canvas id="draw_area"></canvas>
+    </div>
+</div>
+<script src="{% static 'assets/js/draw.js' %}" ></script>
