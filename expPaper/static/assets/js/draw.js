@@ -286,16 +286,16 @@ paper.install(window);
                     to: event.point,
                     radius: 6,
                     strokeWidth: 2,
-                    strokeColor: 'black',
+                    strokeColor: 'red',
                     dashArray: [10, 4]
                 });
                 drawingText = new PointText({
-                    point: [(startPoint.x+event.point.x)/2, (startPoint.y+event.point.y)/2],
+                    point: [(startPoint.x+5), (startPoint.y+event.point.y)/2],
                     content: selectedFieldText,
-                    fillColor: 'black',
-                    fontFamily: 'Courier New',
+                    fillColor: 'red',
+                    fontFamily: 'Arial',
                     fontSize: FONT_SIZE,
-                    justification: 'center'
+                    justification: 'left'
                 });
 
             } else if (bDrawing == true) {
@@ -307,11 +307,11 @@ paper.install(window);
                     to: event.point,
                     radius: RECT_RADIUS,
                     strokeWidth: 2,
-                    strokeColor: 'black',
+                    strokeColor: 'red',
                     dashArray: [10, 4]
                 });
-                drawingText.point.x = (startPoint.x+event.point.x)/2;
-                drawingText.point.y = (startPoint.y+event.point.y)/2;
+                drawingText.point.x = (startPoint.x+5);
+                drawingText.point.y = (startPoint.y+15);
             }
         } else if (draggingMode == DRAGGING_MODES.RESIZING) {
             if (activeItem) {
@@ -344,16 +344,16 @@ paper.install(window);
                 to: endPoint,
                 radius: RECT_RADIUS,
                 strokeWidth: 2,
-                strokeColor: 'black',
+                strokeColor: 'red'
                 //dashArray: [10, 4]
             });
             var newText = new PointText({
-                point: [(startPoint.x+endPoint.x)/2, (startPoint.y+endPoint.y)/2],
+                point: [(startPoint.x+5), (startPoint.y+endPoint.y)/2],
                 content: selectedFieldText,
-                fillColor: 'black',
-                fontFamily: 'Courier New',
+                fillColor: 'red',
+                fontFamily: 'Times New Roman',
                 fontSize: FONT_SIZE,
-                justification: 'center'
+                justification: 'left'
             });
             newPath.textInPath = newText;
             newText.outRect = newPath;
@@ -493,16 +493,16 @@ paper.install(window);
                 to: [data[i].left + data[i].width, data[i].top + data[i].height],
                 radius: RECT_RADIUS,
                 strokeWidth: 2,
-                strokeColor: 'black',
+                strokeColor: 'red'
                 //dashArray: [10, 4]
             });
             var newText = new PointText({
                 point: [data[i].left + data[i].width/2, data[i].top+data[i].height/2],
                 content: $('#field_' + data[i].profile).data('field-value'),
-                fillColor: 'black',
-                fontFamily: 'Courier New',
+                fillColor: 'red',
+                fontFamily: 'Arial',
                 fontSize: FONT_SIZE,
-                justification: 'center'
+                justification: 'left'
             });
             newPath.textInPath = newText;
             newText.outRect = newPath;
