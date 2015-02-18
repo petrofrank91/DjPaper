@@ -243,9 +243,9 @@ paper.install(window);
             if (activeItem) {
                 //activeItem.fillColor = '#0ff';
                 //activeItem.opacity = 0.5;
-                activeItem.bringToFront();
                 activeItem.textInPath.bringToFront();
                 activeItem.backgroundRect.bringToFront();
+                activeItem.bringToFront();
             }
         } else {
             if (activeItem) {
@@ -335,7 +335,7 @@ paper.install(window);
                 to: endPoint,
                 radius: RECT_RADIUS,
                 fillColor: 'red',
-                opacity: 0.2
+                opacity: 0.1
             });
             var newPath = new Path.Rectangle({
                 from: startPoint,
@@ -511,7 +511,7 @@ paper.install(window);
                 to: [data[i].left + data[i].width, data[i].top + data[i].height],
                 radius: RECT_RADIUS,
                 fillColor: 'red',
-                opacity: 0.2
+                opacity: 0.1
             });
             var newPath = new Path.Rectangle({
                 from: [data[i].left, data[i].top],
