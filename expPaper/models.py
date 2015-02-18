@@ -17,10 +17,10 @@ class ProfileFieldImage(models.Model):
     height = models.IntegerField()
 
     def as_json(self):
-        return dict(
-            id=self.id,
-            profile=self.profile,
-            left=self.left,
-            top=self.top,
-            width=self.width,
-            height=self.height)
+        return {
+            'id': self.id,
+            'profile': self.profile.pk,
+            'left': self.left,
+            'top': self.top,
+            'width': self.width,
+            'height': self.height}

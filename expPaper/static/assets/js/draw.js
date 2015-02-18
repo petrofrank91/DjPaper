@@ -15,7 +15,8 @@ paper.install(window);
 
     function loadFieldImages (callback, errorCallback) {
         $.ajax({
-            url: 'images/',
+            // url: 'v1/images/',
+            url: 'v2/images/',
             type: 'get',
             success: function(data) {
                 callback(data);
@@ -27,7 +28,8 @@ paper.install(window);
     };
     function createFieldImage (data, callback, errorCallback) {
         $.ajax({
-            url: 'images/',
+            // url: 'v1/images/',
+            url: 'v2/images/create/',
             type: 'post',
             data: data,
             success: function(data) {
@@ -44,7 +46,8 @@ paper.install(window);
     };
     function updateFieldImage (data, callback, errorCallback) {
         $.ajax({
-            url: 'images/' + data.id + '/',
+            // url: 'v1/images/' + data.id + '/',
+            url: 'v2/images/update/' + data.id + '/',
             type: 'post',
             data: $.extend(data, {_method:'PUT'}),
             success: function(data) {
@@ -61,7 +64,8 @@ paper.install(window);
     };
     function deleteFieldImage (id, callback, errorCallback) {
         $.ajax({
-            url: 'images/' + id + '/',
+            // url: 'v1/images/' + id + '/',
+            url: 'v2/images/delete/' + id + '/',
             type: 'post',
             data: {_method: 'DELETE'},
             success: function(data) {
@@ -76,74 +80,36 @@ paper.install(window);
             }
         });
     };
-    /*$('.btn-create').bind('click', createFieldImage(function() {
-        console.log(' -- create success -- ', arguments);
-    }));
-    $('.btn-update').bind('click', updateFieldImage(function() {
-        console.log(' -- update success -- ', arguments);
-    }));
-    $('.btn-delete').bind('click', deleteFieldImage(function() {
-        console.log(' -- delete success -- ', arguments);
-    }));*/
 
     var canvas = document.getElementById('draw_area');
     // Setup paperscript on canvas
     paper.setup(canvas);
     view.viewSize = new Size(800, 800);
-    var currentMode = 1;
-    var PIXEL_INCH_RATE = 4;
-    var rectWidth = 102;    // Standard Rect Width
-    var path;               // Temp path
     var startPoint;         // The start point when the mouse was downed or mouse direction was changed.
-    var dashedItems;        // The temporary variable to store rectangles in drawing.
-    var rectDirection = 0;  // Drawing Direction.   0 : Vertical,     1 : Horizontal
-    var LeftToRight = 1;    // Horizontal Direction.    1 : Left To Right,  -1 : Right To Left
-    var TopToBottom = 1;    // Vertical Direction.      1 : Top To Bottom,  -1 : Bottom To Top
-    var firstDrag = 0;      // It presents whether first rectangle was drawed or not
-    var segments, extSegments, lastSegments;    //  It is needed when make completed path
-    var drawed = false;     // If true, redraw. If false, draw.
-    var completedPath;      // The variable to store completed path.
-    var PathMeasurements = [];  // The variable to store pair of Path and Measurements.
-
     var changeSegment, changePath, changeCurve; // The variables to store segment, path, and curve which is modified currently.
-    var bMovingPath = false;    // True : Now moving path
-    var bDraggingMode = false;       // True : Now drawing path
-    var smoothLength = 28;      // Standard smooth length
-    var diagonalLength = 60;    // Standard diagonal length.
     var hitOptions = {          // It is needed when hit test.
         segments: true,
         stroke: true,
         fill: true,
         tolerance: 5
     };
-    var EDIT_MODES = {
-        QUOTE_INFORMATION : 0,
-        DRAW_COUNTERS : 1,
-        EDGE_COLOR : 2,
-        BUMPS_RADIUSES : 3,
-        BACKSPLASH : 4,
-        SINK_COOKTOP : 5,
-        PRICING_PRINTING : 6
-    };
 
     var DRAGGING_MODES = {
         NONE: 0,
         RESIZING: 1,
-        DRAWING: 2
+        DRAWING: 2,
+        MOVING: 3
     };
     var FONT_SIZE = 18;
     var RECT_RADIUS = 6;
     var MIN_RECT_WIDTH = 50;
     var MIN_RECT_HEIGHT = 20;
 
-
-    var activeLabels = [];
     var drawingPath, drawingText, lastHitItem;
     var activeItem = null, bDrawing, resizeStatus;
     var draggingMode = DRAGGING_MODES.NONE;
 
     var tool = new Tool();  //  It is needed for mouse events. It is not needed in paperscript. I had to use javascript for context menu.
-
 
     function setCursorType (enable, setting) {
         if (enable) {
@@ -167,6 +133,9 @@ paper.install(window);
                     5: 'ew-resize',
                     6: 'nwse-resize',
                     7: 'ns-resize'
+                },
+                'fill': {
+                    0: 'move'
                 }
             }
             $("#draw_area").css('cursor', cursors[setting.type][setting.index]);
@@ -198,6 +167,10 @@ paper.install(window);
                     index: hitResult.segment.index
                 });
             } else if (hitResult.type == 'fill') {
+                setCursorType( true, {
+                    type: 'fill',
+                    index: 0
+                });
                 if ( hitResult.item.outRect ) {
                     lastHitItem = hitResult.item.outRect;
                     lastHitItem.selected = true;
@@ -226,6 +199,7 @@ paper.install(window);
     tool.onMouseDown = function (event) {   // Mouse down function on canvas
         changeSegment = changePath = changeCurve = null;
         var hitResult = paper.project.hitTest(event.point, hitOptions); // Hit Test to recognize which object was selected.
+        console.log(hitResult);
         if (hitResult) {    // There is any object
             if (lastHitItem) {
                 lastHitItem.selected = false;
@@ -242,7 +216,7 @@ paper.install(window);
                 resizeStatus = {
                     type: 'stroke',
                     index: hitResult.location.curve.index
-                }
+                };
                 draggingMode = DRAGGING_MODES.RESIZING;
                 setCursorType(true, resizeStatus);
             } else if (hitResult.type == 'segment') {
@@ -251,7 +225,7 @@ paper.install(window);
                 resizeStatus = {
                     type: 'segment',
                     index: hitResult.segment.index
-                }
+                };
                 draggingMode = DRAGGING_MODES.RESIZING;
                 setCursorType( true, resizeStatus);
             } else if (hitResult.type == 'fill') {
@@ -259,6 +233,19 @@ paper.install(window);
                     activeItem = hitResult.item.outRect;
                     activeItem.selected = true;
                 }
+                resizeStatus = {
+                    type: 'fill',
+                    index: 0
+                };
+                draggingMode = DRAGGING_MODES.MOVING;
+                setCursorType( true, resizeStatus);
+            }
+            if (activeItem) {
+                //activeItem.fillColor = '#0ff';
+                //activeItem.opacity = 0.5;
+                activeItem.bringToFront();
+                activeItem.textInPath.bringToFront();
+                activeItem.backgroundRect.bringToFront();
             }
         } else {
             if (activeItem) {
@@ -290,7 +277,7 @@ paper.install(window);
                     dashArray: [10, 4]
                 });
                 drawingText = new PointText({
-                    point: [(startPoint.x+5), (startPoint.y+event.point.y)/2],
+                    point: [drawingPath.bounds.left + 5, drawingPath.bounds.top + 15],
                     content: selectedFieldText,
                     fillColor: 'red',
                     fontFamily: 'Arial',
@@ -310,12 +297,16 @@ paper.install(window);
                     strokeColor: 'red',
                     dashArray: [10, 4]
                 });
-                drawingText.point.x = (startPoint.x+5);
-                drawingText.point.y = (startPoint.y+15);
+                drawingText.point.x = drawingPath.bounds.left + 5;
+                drawingText.point.y = drawingPath.bounds.top + 15;
             }
         } else if (draggingMode == DRAGGING_MODES.RESIZING) {
             if (activeItem) {
                 calculateRectSegments(activeItem, event.point, event.delta , resizeStatus);
+            }
+        } else if (draggingMode == DRAGGING_MODES.MOVING) {
+            if (activeItem) {
+                moveRect(activeItem, event.delta);
             }
         }
     };
@@ -339,6 +330,13 @@ paper.install(window);
             } else {
                 endPoint.y = startPoint.y - Math.max(startPoint.y - event.point.y, MIN_RECT_HEIGHT);
             }
+            var newBackground = new Path.Rectangle({
+                from: startPoint,
+                to: endPoint,
+                radius: RECT_RADIUS,
+                fillColor: 'red',
+                opacity: 0.2
+            });
             var newPath = new Path.Rectangle({
                 from: startPoint,
                 to: endPoint,
@@ -348,21 +346,23 @@ paper.install(window);
                 //dashArray: [10, 4]
             });
             var newText = new PointText({
-                point: [(startPoint.x+5), (startPoint.y+endPoint.y)/2],
+                point: [newPath.bounds.left + 5, newPath.bounds.top + 15],
                 content: selectedFieldText,
                 fillColor: 'red',
-                fontFamily: 'Times New Roman',
+                fontFamily: 'Arial',
                 fontSize: FONT_SIZE,
                 justification: 'left'
             });
             newPath.textInPath = newText;
+            newPath.backgroundRect = newBackground;
             newText.outRect = newPath;
-            /*activeLabels.push({
-                path: newPath,
-                text: newText,
-                pk: selectedField,
-                text: selectedFieldText
-            });*/
+            newBackground.outRect = newPath;
+            //activeLabels.push({
+            //    path: newPath,
+            //    text: newText,
+            //    pk: selectedField,
+            //    text: selectedFieldText
+            //});
             createFieldImage({
                 profile: selectedField,
                 left: newPath.bounds.left,
@@ -375,7 +375,7 @@ paper.install(window);
             }, function(err){
                 console.log('-- create failure --', err);
             });
-        } else if (draggingMode === DRAGGING_MODES.RESIZING) {
+        } else if (draggingMode === DRAGGING_MODES.RESIZING || draggingMode === DRAGGING_MODES.MOVING) {
             updateFieldImage({
                 id: activeItem.djangoData.id,
                 profile: activeItem.djangoData.profile,
@@ -467,7 +467,24 @@ paper.install(window);
             }
         }
         if (item.textInPath) {
-            item.textInPath.point = item.bounds.center;
+            item.textInPath.point.x = item.bounds.left + 5;
+            item.textInPath.point.y = item.bounds.top + 15;
+        }
+        if (item.backgroundRect) {
+            item.backgroundRect.segments = item.segments;
+        }
+    }
+    function moveRect (item, delta) {
+        for ( var i = 0; i < item.segments.length; i++) {
+            item.segments[i].point.x += delta.x;
+            item.segments[i].point.y += delta.y;
+        }
+        if (item.textInPath) {
+            item.textInPath.point.x = item.bounds.left + 5;
+            item.textInPath.point.y = item.bounds.top + 15;
+        }
+        if (item.backgroundRect) {
+            item.backgroundRect.segments = item.segments;
         }
     }
     tool.onKeyUp = function (event) {
@@ -478,6 +495,7 @@ paper.install(window);
                     console.log(' -- delete success --', data);
                     activeItem.remove();
                     activeItem.textInPath.remove();
+                    activeItem.backgroundRect.remove();
                     activeItem = null;
                 }, function(err) {
                     console.log(' -- delete failure --', err);
@@ -488,6 +506,13 @@ paper.install(window);
     loadFieldImages(function(data) {
         console.log('--load images--', data);
         for (var i = 0; i < data.length; i++ ) {
+            var newBackground = new Path.Rectangle({
+                from: [data[i].left, data[i].top],
+                to: [data[i].left + data[i].width, data[i].top + data[i].height],
+                radius: RECT_RADIUS,
+                fillColor: 'red',
+                opacity: 0.2
+            });
             var newPath = new Path.Rectangle({
                 from: [data[i].left, data[i].top],
                 to: [data[i].left + data[i].width, data[i].top + data[i].height],
@@ -496,8 +521,9 @@ paper.install(window);
                 strokeColor: 'red'
                 //dashArray: [10, 4]
             });
+            //newBackground.segments = newPath.segments;
             var newText = new PointText({
-                point: [data[i].left + data[i].width/2, data[i].top+data[i].height/2],
+                point: [data[i].left + 5, data[i].top + 15],
                 content: $('#field_' + data[i].profile).data('field-value'),
                 fillColor: 'red',
                 fontFamily: 'Arial',
@@ -506,7 +532,71 @@ paper.install(window);
             });
             newPath.textInPath = newText;
             newText.outRect = newPath;
+            newBackground.outRect = newPath;
+            newPath.backgroundRect = newBackground;
             newPath.djangoData = data[i];
         }
+        paper.view.draw();
     });
+
 })(jQuery);
+/*window.onload = function() {
+    var canvas = document.getElementById('draw_area');
+    // Setup paperscript on canvas
+    paper.setup(canvas);
+    paper.view.viewSize = new Size(800, 800);
+    var startPoint;         // The start point when the mouse was downed or mouse direction was changed.
+    var changeSegment, changePath, changeCurve; // The variables to store segment, path, and curve which is modified currently.
+    var hitOptions = {          // It is needed when hit test.
+        segments: true,
+        stroke: true,
+        fill: true,
+        tolerance: 5
+    };
+
+    var DRAGGING_MODES = {
+        NONE: 0,
+        RESIZING: 1,
+        DRAWING: 2,
+        MOVING: 3
+    };
+    var FONT_SIZE = 18;
+    var RECT_RADIUS = 6;
+    var MIN_RECT_WIDTH = 50;
+    var MIN_RECT_HEIGHT = 20;
+
+    var drawingPath, drawingText, lastHitItem;
+    var activeItem = null, bDrawing, resizeStatus;
+    var draggingMode = DRAGGING_MODES.NONE;
+
+    var tool = new paper.Tool();  //  It is needed for mouse events. It is not needed in paperscript. I had to use javascript for context menu.
+
+    var mousePoint = paper.view.center;
+    var amount = 25;
+    var colors = ['red', 'white', 'blue', 'white'];
+
+    for (var i = 0; i < amount; i++) {
+        var rect = new paper.Rectangle([0, 0], [25, 25]);
+        rect.center = mousePoint;
+        var path = new paper.Path.Rectangle(rect, 6);
+        path.fillColor = colors[i % 4];
+        var scale = (1 - i / amount) * 20;
+        path.scale(scale);
+    }
+
+    tool.onMouseMove = function (event) {
+        mousePoint = event.point;
+    }
+
+    var children = paper.project.activeLayer.children;
+    tool.onFrame = function (event) {
+        for (var i = 0, l = children.length; i < l; i++) {
+            var item = children[i];
+            var delta = (mousePoint - item.position) / (i + 5);
+            item.rotate(Math.sin((event.count + i) / 10) * 7);
+            if (delta.length > 0.1)
+                item.position += delta;
+        }
+    };
+    view.draw();
+}*/
