@@ -365,10 +365,10 @@ paper.install(window);
             //});
             createFieldImage({
                 profile: selectedField,
-                left: newPath.bounds.left,
-                top: newPath.bounds.top,
-                width: newPath.bounds.width,
-                height: newPath.bounds.height
+                left: Math.round(newPath.bounds.left),
+                top: Math.round(newPath.bounds.top),
+                width: Math.round(newPath.bounds.width),
+                height:Math.round( newPath.bounds.height)
             },function(data) {
                 console.log('-- create success --', data);
                 newPath.djangoData = data;
@@ -379,10 +379,10 @@ paper.install(window);
             updateFieldImage({
                 id: activeItem.djangoData.id,
                 profile: activeItem.djangoData.profile,
-                left: activeItem.bounds.left,
-                top: activeItem.bounds.top,
-                width: activeItem.bounds.width,
-                height: activeItem.bounds.height
+                left: Math.round(activeItem.bounds.left),
+                top: Math.round(activeItem.bounds.top),
+                width: Math.round(activeItem.bounds.width),
+                height: Math.round(activeItem.bounds.height)
             }, function(data) {
                 console.log('--update success--', data);
             }, function(err) {
