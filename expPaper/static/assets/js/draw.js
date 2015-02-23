@@ -376,18 +376,20 @@ paper.install(window);
                 console.log('-- create failure --', err);
             });
         } else if (draggingMode === DRAGGING_MODES.RESIZING || draggingMode === DRAGGING_MODES.MOVING) {
-            updateFieldImage({
-                id: activeItem.djangoData.id,
-                profile: activeItem.djangoData.profile,
-                left: Math.round(activeItem.bounds.left),
-                top: Math.round(activeItem.bounds.top),
-                width: Math.round(activeItem.bounds.width),
-                height: Math.round(activeItem.bounds.height)
-            }, function(data) {
-                console.log('--update success--', data);
-            }, function(err) {
-                console.log('--update failure--', err);
-            });
+            if (activeItem) {
+                updateFieldImage({
+                    id: activeItem.djangoData.id,
+                    profile: activeItem.djangoData.profile,
+                    left: Math.round(activeItem.bounds.left),
+                    top: Math.round(activeItem.bounds.top),
+                    width: Math.round(activeItem.bounds.width),
+                    height: Math.round(activeItem.bounds.height)
+                }, function(data) {
+                    console.log('--update success--', data);
+                }, function(err) {
+                    console.log('--update failure--', err);
+                });
+            }
         }
         draggingMode = DRAGGING_MODES.NONE;
     };
