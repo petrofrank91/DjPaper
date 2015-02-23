@@ -377,18 +377,22 @@ paper.install(window);
             });
         } else if (draggingMode === DRAGGING_MODES.RESIZING || draggingMode === DRAGGING_MODES.MOVING) {
             if (activeItem) {
-                updateFieldImage({
-                    id: activeItem.djangoData.id,
-                    profile: activeItem.djangoData.profile,
-                    left: Math.round(activeItem.bounds.left),
-                    top: Math.round(activeItem.bounds.top),
-                    width: Math.round(activeItem.bounds.width),
-                    height: Math.round(activeItem.bounds.height)
-                }, function(data) {
-                    console.log('--update success--', data);
-                }, function(err) {
-                    console.log('--update failure--', err);
-                });
+                try {
+                    updateFieldImage({
+                        id: activeItem.djangoData.id,
+                        profile: activeItem.djangoData.profile,
+                        left: Math.round(activeItem.bounds.left),
+                        top: Math.round(activeItem.bounds.top),
+                        width: Math.round(activeItem.bounds.width),
+                        height: Math.round(activeItem.bounds.height)
+                    }, function(data) {
+                        console.log('--update success--', data);
+                    }, function(err) {
+                        console.log('--update failure--', err);
+                    });
+                } catch (e) {
+                    console.log(e);
+                }
             }
         }
         draggingMode = DRAGGING_MODES.NONE;
